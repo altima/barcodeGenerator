@@ -1,4 +1,5 @@
 FROM mono:onbuild
 
-CMD ["mono", "./BarcodeService.exe"] 
+EXPOSE 1234
 
+CMD ["mono", "./BarcodeService.exe"] 
