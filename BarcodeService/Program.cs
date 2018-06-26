@@ -9,7 +9,7 @@ namespace BarcodeService
         static void Main(string[] args)
         {
             Metric.Config
-                .WithHttpEndpoint("http://localhost:10110/")
+                .WithHttpEndpoint("http://localhost:8888/")
                 .WithAllCounters();
 
             Console.CancelKeyPress += (s,ev)=> {
