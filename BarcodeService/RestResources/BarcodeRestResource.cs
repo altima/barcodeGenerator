@@ -6,12 +6,16 @@ using ZXing.Common;
 using System;
 using System.Collections.Generic;
 using Grapevine.Server;
+using Metrics;
 
 namespace BarcodeService.RestResources
 {
     [RestResource]
     public class BarcodeRestResource
     {
+        private readonly Timer timer = Metric.Timer("BarcodeRestApi", Unit.Requests);
+        private readonly Counter counter = Metric.Counter("ConcurrentRequests", Unit.Requests);
+
         public BarcodeRestResource()
         {
 
@@ -54,17 +58,26 @@ namespace BarcodeService.RestResources
 
         private IHttpContext HandleRequest(IHttpContext context, BarcodeFormat format, int height = 100)
         {
-            try
+            var param = context.Request.PathParameters;
+            var code = param["code"];
+
+            this.counter.Increment($"{format}");
+            using (this.timer.NewContext(code))
             {
-                var param = context.Request.PathParameters;
-                var code = GenerateCode(param["code"], format, height: height);
-                context.Response.ContentType = ContentType.SVG;
-                context.Response.SendResponse(HttpStatusCode.Ok, code);
+                try
+                {
+                    var generatedCode = GenerateCode(code, format, height: height);
+                    context.Response.ContentType = ContentType.SVG;
+                    context.Response.SendResponse(HttpStatusCode.Ok, generatedCode);
+
+                }
+                catch (Exception ex)
+                {
+                    context.Response.SendResponse(HttpStatusCode.BadRequest, ex.Message);
+                }
             }
-            catch (Exception ex)
-            {
-                context.Response.SendResponse(HttpStatusCode.BadRequest, ex.Message);
-            }
+            this.counter.Decrement($"{format}");
+
             return context;
         }
 

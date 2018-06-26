@@ -1,5 +1,6 @@
 ﻿using Grapevine.Server;
 using System;
+using Metrics;
 
 namespace BarcodeService
 {
@@ -7,6 +8,10 @@ namespace BarcodeService
     {
         static void Main(string[] args)
         {
+            Metric.Config
+                .WithHttpEndpoint("http://localhost:10110/")
+                .WithAllCounters();
+
             Console.CancelKeyPress += (s,ev)=> {
                 Console.WriteLine("[CTRL]+[C] pressed!");
                 ev.Cancel = true;
